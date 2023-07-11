@@ -77,7 +77,7 @@ public class FbTestsSetup
 		foreach (var item in _initalized)
 		{
 			var cs = FbTestsBase.BuildConnectionString(item.Item1, item.Item2, item.Item3);
-			await FbConnection.DropDatabaseAsync(cs);
+			//await FbConnection.DropDatabaseAsync(cs);
 		}
 		_initalized.Clear();
 	}
