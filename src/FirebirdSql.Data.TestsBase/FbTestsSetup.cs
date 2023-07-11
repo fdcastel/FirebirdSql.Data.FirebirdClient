@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using FirebirdSql.Data.FirebirdClient;
@@ -61,7 +62,12 @@ public class FbTestsSetup
 
 	public static string Database(FbServerType serverType, bool compression, FbWireCrypt wireCrypt)
 	{
-		return $"{DatabaseBase}_{serverType}_{compression}_{wireCrypt}.fdb";
+		var serverTypeSuffix = serverType == FbServerType.Embedded ? "_embedded" : "";
+		var compressionSuffix = compression ? "_compression" : "";
+		var wireCryptSuffix = wireCrypt != FbWireCrypt.Disabled ? $"_wirecrypt_{wireCrypt}" : "";
+
+		var databaseName = $"{DatabaseBase}{serverTypeSuffix}{compressionSuffix}{wireCryptSuffix}.fdb";
+		return Path.Join(Path.GetTempPath(), databaseName);
 	}
 
 	[OneTimeTearDown]
