@@ -172,7 +172,12 @@ public class FbDatabaseModelFactory : DatabaseModelFactory
 								 ELSE 'BIGINT'
 							 END
 				WHEN 23 THEN 'BOOLEAN'
+				WHEN 24 THEN 'DECFLOAT'
+				WHEN 25 THEN 'DECFLOAT'
+				WHEN 26 THEN 'INT128'
 				WHEN 27 THEN 'DOUBLE PRECISION'
+				WHEN 28 THEN 'TIME WITH TIME ZONE'
+				WHEN 29 THEN 'TIMESTAMP WITH TIME ZONE'
 				WHEN 35 THEN 'TIMESTAMP'
 				WHEN 37 THEN 'VARCHAR'
 				WHEN 40 THEN 'CSTRING'
@@ -252,6 +257,8 @@ public class FbDatabaseModelFactory : DatabaseModelFactory
 
 							"NUMERIC" or
 							"DECIMAL" => $"{storeType}({columnPrecision},{columnScale})",
+
+							"DECFLOAT" => $"{storeType}({columnPrecision})",
 
 							_ => storeType
 						};
