@@ -16,6 +16,7 @@
 //$Authors = Carlos Guzman Alvarez, Jiri Cincura (jiri@cincura.net)
 
 using System;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -196,7 +197,7 @@ end";
 			builder.Database = FbTestsSetup.Database(serverType, compression, wireCrypt);
 		}
 		builder.ServerType = serverType;
-		return builder;
+		return UseEmbeddedServerIfApplicable(builder);
 	}
 
 	public static FbConnectionStringBuilder BuildConnectionStringBuilder(FbServerType serverType, bool compression, FbWireCrypt wireCrypt)
@@ -212,6 +213,18 @@ end";
 		builder.ServerType = serverType;
 		builder.Compression = compression;
 		builder.WireCrypt = wireCrypt;
+		return UseEmbeddedServerIfApplicable(builder);
+	}
+
+	private static FbConnectionStringBuilder UseEmbeddedServerIfApplicable(FbConnectionStringBuilder builder)
+	{
+		if (File.Exists(FbTestsSetup.DataSource))
+		{
+			// DataSource is a path for embedded Firebird.
+			builder.DataSource = "";
+			builder.ClientLibrary = FbTestsSetup.DataSource;
+			builder.ServerType = FbServerType.Embedded;
+		}
 		return builder;
 	}
 

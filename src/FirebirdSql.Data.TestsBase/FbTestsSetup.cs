@@ -31,7 +31,7 @@ public class FbTestsSetup
 	private const string DatabaseBase = "netprovider_tests";
 	internal const string UserID = "SYSDBA";
 	internal const string Password = "masterkey";
-	internal const string DataSource = "localhost";
+	internal const string DataSource = @"C:\Users\fdcastel\AppData\Local\Temp\firebird-binaries\fb50\fbclient.dll";
 	internal const int Port = 3050;
 	internal const string Charset = "utf8";
 	internal const bool Pooling = false;
