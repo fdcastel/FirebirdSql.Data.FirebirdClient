@@ -15,19 +15,10 @@
 
 //$Authors = Jiri Cincura (jiri@cincura.net), Jean Ressouche, Rafael Almeida (ralms@ralms.net)
 
-namespace FirebirdSql.EntityFrameworkCore.Firebird.Metadata.Internal;
+namespace FirebirdSql.EntityFrameworkCore.Firebird.Metadata;
 
-public static class FbAnnotationNames
+public enum FbIdentityType
 {
-	public const string Prefix = "Fb:";
-
-	public const string ValueGenerationStrategy = Prefix + nameof(ValueGenerationStrategy);
-
-	public const string BlobSegmentSize = Prefix + nameof(BlobSegmentSize);
-	public const string CharacterSet = Prefix + nameof(CharacterSet);
-	public const string DomainName = Prefix + nameof(DomainName);
-
-	public const string IdentityType = Prefix + nameof(IdentityType);
-	public const string IdentityStart = Prefix + nameof(IdentityStart);
-	public const string IdentityIncrement = Prefix + nameof(IdentityIncrement);
+	GeneratedAlways = 0,
+	GeneratedByDefault = 1,
 }
