@@ -31,7 +31,7 @@ partial class CommandBenchmark
 			conn.Open();
 			using (var cmd = conn.CreateCommand())
 			{
-				cmd.CommandText = $"create table foobar (x {DataType})";
+				cmd.CommandText = $"CREATE TABLE foobar (x {DataType})";
 				cmd.ExecuteNonQuery();
 			}
 		}
@@ -45,7 +45,7 @@ partial class CommandBenchmark
 			conn.Open();
 			using (var cmd = conn.CreateCommand())
 			{
-				cmd.CommandText = @"insert into foobar values (@cnt)";
+				cmd.CommandText = @"INSERT INTO foobar VALUES (@cnt)";
 				var p = new FbParameter() { ParameterName = "@cnt" };
 				cmd.Parameters.Add(p);
 				for (var i = 0; i < Count; i++)

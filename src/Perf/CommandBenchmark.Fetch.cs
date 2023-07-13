@@ -31,21 +31,23 @@ partial class CommandBenchmark
 			conn.Open();
 			using (var cmd = conn.CreateCommand())
 			{
-				cmd.CommandText = $"create table foobar (x {DataType})";
+				cmd.CommandText = $"CREATE TABLE foobar (x {DataType})";
 				cmd.ExecuteNonQuery();
 			}
+
 			using (var cmd = conn.CreateCommand())
 			{
-				cmd.CommandText = $@"execute block as
-declare cnt int;
-begin
-	cnt = {Count};
-	while (cnt > 0) do
-	begin
-		insert into foobar values (:cnt);
-		cnt = cnt - 1;
-	end
-end";
+				cmd.CommandText = $@"
+					EXECUTE BLOCK AS
+					DECLARE cnt INT;
+					BEGIN
+						cnt = {Count};
+						WHILE (cnt > 0) DO
+						BEGIN
+							INSERT INTO foobar VALUES (:cnt);
+							cnt = cnt - 1;
+						END
+					END";
 				cmd.ExecuteNonQuery();
 			}
 		}
@@ -59,7 +61,7 @@ end";
 			conn.Open();
 			using (var cmd = conn.CreateCommand())
 			{
-				cmd.CommandText = "select x from foobar";
+				cmd.CommandText = "SELECT x FROM foobar";
 				using (var reader = cmd.ExecuteReader())
 				{
 					while (reader.Read())

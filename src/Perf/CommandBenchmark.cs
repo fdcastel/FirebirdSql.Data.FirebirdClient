@@ -66,7 +66,9 @@ public partial class CommandBenchmark
 		ClientLibrary = Path.Join(Path.GetTempPath(), @"firebird-binaries\fb50\fbclient.dll"),
 	}).ConnectionString;
 
-	[Params("bigint", "varchar(10) character set utf8")]
+	[Params(
+		"BIGINT",
+		"VARCHAR(10) CHARACTER SET UTF8")]
 	public string DataType { get; set; }
 
 	[Params(100, 10000)]
