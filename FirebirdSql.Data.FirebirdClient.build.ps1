@@ -8,7 +8,8 @@
 
 param(
     $Configuration = 'Debug',
-    $VersionSuffix = $null
+    $VersionSuffix = $null,
+    $Benchmark = 'CommandBenchmark'
 )
 
 
@@ -58,7 +59,7 @@ task Benchmark {
     # .Net 7.0 only
     
     Exec { dotnet build .\src\Perf\Perf.csproj --configuration 'Release' }
-    & .\src\Perf\bin\Release\net7.0\Perf.exe
+    & .\src\Perf\bin\Release\net7.0\Perf.exe --filter "*$($Benchmark)*"
 }
 
 

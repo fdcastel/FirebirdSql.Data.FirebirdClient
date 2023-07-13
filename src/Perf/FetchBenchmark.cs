@@ -1,21 +1,4 @@
-﻿/*
- *    The contents of this file are subject to the Initial
- *    Developer's Public License Version 1.0 (the "License");
- *    you may not use this file except in compliance with the
- *    License. You may obtain a copy of the License at
- *    https://github.com/FirebirdSQL/NETProvider/raw/master/license.txt.
- *
- *    Software distributed under the License is distributed on
- *    an "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either
- *    express or implied. See the License for the specific
- *    language governing rights and limitations under the License.
- *
- *    All Rights Reserved.
- */
-
-//$Authors = Jiri Cincura (jiri@cincura.net)
-
-using System.Diagnostics.Tracing;
+﻿using System.Diagnostics.Tracing;
 using System.IO;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
@@ -29,7 +12,7 @@ using Microsoft.Diagnostics.Tracing.Parsers;
 namespace Perf;
 
 [Config(typeof(Config))]
-public partial class CommandBenchmark
+public class FetchBenchmark
 {
 	class Config : ManualConfig
 	{
@@ -43,7 +26,7 @@ public partial class CommandBenchmark
 
 		public Config()
 		{
- 			AddJob(Job.ShortRun.WithRuntime(CoreRuntime.Core70));
+			AddJob(Job.ShortRun.WithRuntime(CoreRuntime.Core70));
 
 			AddDiagnoser(MemoryDiagnoser.Default);
 
@@ -66,17 +49,22 @@ public partial class CommandBenchmark
 		ClientLibrary = Path.Join(Path.GetTempPath(), @"firebird-binaries\fb50\fbclient.dll"),
 	}).ConnectionString;
 
-	[Params(
-		"BIGINT",
-		"VARCHAR(10) CHARACTER SET UTF8")]
-	public string DataType { get; set; }
-
-	[Params(100)]
+	[Params(10_000)]
 	public int Count { get; set; }
 
-	void GlobalSetupBase()
+	[Params(
+		"BIGINT",
+		"CHAR(255) CHARACTER SET UTF8",
+		"CHAR(255) CHARACTER SET OCTETS",
+		"BLOB SUB_TYPE TEXT CHARACTER SET UTF8",
+		"BLOB SUB_TYPE BINARY"
+	)]
+	public string DataType { get; set; }
+
+	[GlobalSetup(Target = nameof(Fetch))]
+	public void FetchGlobalSetup()
 	{
-		FbConnection.CreateDatabase(ConnectionString, 16 * 1024, false, true);
+		FbConnection.CreateDatabase(ConnectionString, 8192, false, true);
 	}
 
 	[GlobalCleanup]
@@ -85,4 +73,39 @@ public partial class CommandBenchmark
 		FbConnection.ClearAllPools();
 		FbConnection.DropDatabase(ConnectionString);
 	}
+
+	[Benchmark]
+	public void Fetch()
+	{
+		using var conn = new FbConnection(ConnectionString);
+		conn.Open();
+
+		using var cmd = conn.CreateCommand();
+		cmd.CommandText = $@"
+			EXECUTE BLOCK RETURNS (result {DataType}) AS
+			DECLARE cnt INTEGER;
+			BEGIN
+				SELECT {GetFillExpression(DataType)} FROM rdb$database INTO result;
+				cnt = {Count};
+				WHILE (cnt > 0) DO
+				BEGIN
+					SUSPEND;
+					cnt = cnt - 1;
+				END
+			END
+		";
+
+		using var reader = cmd.ExecuteReader();
+		while (reader.Read())
+		{
+			_ = reader[0];
+		}
+	}
+	private static string GetFillExpression(string dataType) =>
+		dataType switch
+		{
+			{ } when dataType.StartsWith("BLOB") => $"LPAD('', 1023, '{dataType};')",
+			{ } when dataType.StartsWith("CHAR") => $"LPAD('', 255, '{dataType};')",
+			_ => "9223372036854775807" /* BIGINT */
+		};
 }

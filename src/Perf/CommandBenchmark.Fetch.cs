@@ -44,7 +44,7 @@ partial class CommandBenchmark
 						cnt = {Count};
 						WHILE (cnt > 0) DO
 						BEGIN
-							INSERT INTO foobar VALUES (:cnt);
+							INSERT INTO foobar VALUES (:cnt * 21474836);
 							cnt = cnt - 1;
 						END
 					END";

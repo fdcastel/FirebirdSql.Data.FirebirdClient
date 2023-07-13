@@ -45,7 +45,7 @@ partial class CommandBenchmark
 			conn.Open();
 			using (var cmd = conn.CreateCommand())
 			{
-				cmd.CommandText = @"INSERT INTO foobar VALUES (@cnt)";
+				cmd.CommandText = @"INSERT INTO foobar VALUES (@cnt * 21474836)";
 				var p = new FbParameter() { ParameterName = "@cnt" };
 				cmd.Parameters.Add(p);
 				for (var i = 0; i < Count; i++)
