@@ -15,13 +15,16 @@
 
 //$Authors = Jiri Cincura (jiri@cincura.net)
 
+using System.Diagnostics.Tracing;
+using System.IO;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Environments;
 using BenchmarkDotNet.Jobs;
-using BenchmarkDotNet.Toolchains.CsProj;
 using FirebirdSql.Data.FirebirdClient;
+using Microsoft.Diagnostics.NETCore.Client;
+using Microsoft.Diagnostics.Tracing.Parsers;
 
 namespace Perf;
 
@@ -30,25 +33,43 @@ public partial class CommandBenchmark
 {
 	class Config : ManualConfig
 	{
+		private const ClrTraceEventParser.Keywords EventParserKeywords =
+			ClrTraceEventParser.Keywords.Exception
+			| ClrTraceEventParser.Keywords.GC
+			| ClrTraceEventParser.Keywords.Jit
+			| ClrTraceEventParser.Keywords.JitTracing // for the inlining events
+			| ClrTraceEventParser.Keywords.Loader
+			| ClrTraceEventParser.Keywords.NGen;
+
 		public Config()
 		{
-			var baseJob = Job.Default
-				.WithWarmupCount(3)
-				.WithToolchain(CsProjCoreToolchain.NetCoreApp60)
-				.WithPlatform(Platform.X64)
-				.WithJit(Jit.RyuJit);
+ 			AddJob(Job.ShortRun.WithRuntime(CoreRuntime.Core70));
+
 			AddDiagnoser(MemoryDiagnoser.Default);
-			AddJob(baseJob.WithCustomBuildConfiguration("Release").WithId("Project"));
-			AddJob(baseJob.WithCustomBuildConfiguration("ReleaseNuGet").WithId("NuGet").AsBaseline());
+
+			AddDiagnoser(new EventPipeProfiler(providers: new[] {
+				new EventPipeProvider(
+					ClrTraceEventParser.ProviderName,
+					EventLevel.Verbose,
+					(long)EventParserKeywords
+				)
+			}));
 		}
 	}
 
-	protected const string ConnectionString = "database=localhost:benchmark.fdb;user=sysdba;password=masterkey";
+	protected readonly string ConnectionString = (new FbConnectionStringBuilder()
+	{
+		Database = Path.Join(Path.GetTempPath(), "FirebirdSql.Data.FirebirdClient.Benchmark.fb50.fdb"),
+		UserID = "SYSDBA",
+		Password = "masterkey",
+		ServerType = FbServerType.Embedded,
+		ClientLibrary = Path.Join(Path.GetTempPath(), @"firebird-binaries\fb50\fbclient.dll"),
+	}).ConnectionString;
 
 	[Params("bigint", "varchar(10) character set utf8")]
 	public string DataType { get; set; }
 
-	[Params(100)]
+	[Params(100, 10000)]
 	public int Count { get; set; }
 
 	void GlobalSetupBase()

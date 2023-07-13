@@ -54,6 +54,13 @@ task Build Clean, {
         Copy-Item -Destination $outDir
 }
 
+task Benchmark {
+    # .Net 7.0 only
+    
+    Exec { dotnet build .\src\Perf\Perf.csproj --configuration 'Release' }
+    & .\src\Perf\bin\Release\net7.0\Perf.exe
+}
+
 
 #
 # Default task

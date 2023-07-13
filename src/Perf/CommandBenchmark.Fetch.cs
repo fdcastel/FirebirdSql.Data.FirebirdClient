@@ -64,7 +64,7 @@ end";
 				{
 					while (reader.Read())
 					{
-						var dummy = reader[0];
+						_ = reader[0];
 					}
 				}
 			}
